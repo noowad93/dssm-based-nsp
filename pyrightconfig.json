@@ -1,11 +1,9 @@
 {
-  "include": ["pack"],
-  "venvPath": "env",
-
-  "reportUnknownVariableType": true,
-  "reportUnknownMemberType": true,
+  "include": [
+    "dssm_based_nsp"
+  ],
+  "venvPath": "venv",
   "reportUnusedImport": true,
-  "reportUnusedVariable": true,
   "reportUnusedClass": true,
   "reportUnusedFunction": true,
   "reportImportCycles": true,
@@ -19,7 +17,6 @@
   "reportUnnecessaryCast": true,
   "reportAssertAlwaysTrue": true,
   "reportSelfClsParameterName": true,
-
   "pythonVersion": "3.7",
   "pythonPlatform": "Linux"
 }

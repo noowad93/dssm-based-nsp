@@ -1,7 +1,9 @@
-# dev dependency
-isort
-black
+# lint, format
 flake8
+black
+isort
 
+# test
 pytest
+coveralls
 pytest-cov

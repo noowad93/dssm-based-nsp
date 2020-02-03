@@ -1,0 +1,5 @@
+torch==1.3.0
+tqdm
+
+# scatterlab dependency
+git+ssh://git@github.com/scatterlab/pingpong-nlp.git@master
