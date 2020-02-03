@@ -8,7 +8,7 @@ import torch
 
 def load_dataset(file_path: str) -> List[List[str]]:
     reader = csv.reader(open(file_path))
-    return list(reader)[1:1000]
+    return list(reader)[1:]
 
 
 class DSSMTrainDataset(Dataset):
