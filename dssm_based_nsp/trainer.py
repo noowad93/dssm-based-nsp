@@ -31,10 +31,10 @@ class Trainer:
 
         self.device, self.list_ids = self._prepare_device(config.n_gpu, logger)
         self.model.to(self.device)
-        if len(self.list_ids) > 1:
-            self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
+        # if len(self.list_ids) > 1:
+        #     self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
         self.optimizer = Adam(model.parameters(), lr=config.learning_rate)
-        self.criterion = nn.CrossEntropyLoss(ignore_index=0)
+        self.criterion = nn.MSELoss()
 
         self.steps_per_epoch = len(train_dataloader)
         self.total_steps = self.steps_per_epoch * config.epoch
@@ -52,6 +52,34 @@ class Trainer:
         self.logger.info(f"steps per epoch       : {self.steps_per_epoch}")
         self.logger.info(f"total steps           : {self.total_steps}")
         self.logger.info("========= End of train config ========")
+        global_step = 0
+        for epoch in range(1, self.config.epoch + 1):
+            self.model.train()
+            loss_sum = 0.0
+            for data in self.train_dataloader:
+                global_step += 1
+                data = tuple(datum.to(self.device) for datum in data)
+                labels = torch.tensor(
+                    [1] * self.config.train_batch_size, dtype=torch.float, requires_grad=True
+                ).unsqueeze(1)
+
+                self.optimizer.zero_grad()
+                outputs = self.model.forward(data[0], data[1])
+                loss = self.criterion(outputs, labels)
+
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                self.optimizer.step()
+
+                loss_sum += loss.item()
+                if global_step % self.config.train_log_interval == 0:
+                    mean_loss = loss_sum / self.config.train_log_interval
+                    self.logger.info(f"Epoch {epoch} Step {global_step} Loss {mean_loss:.4f}")
+                    loss_sum = 0.0
+            #     if global_step % self.config.val_log_interval == 0:
+            #         self._validate(global_step)
+            # self._save_model(self.model, epoch)
+
         return
 
     def _validate(self):

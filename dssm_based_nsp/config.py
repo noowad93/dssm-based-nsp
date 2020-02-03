@@ -5,7 +5,7 @@ class TrainConfig(NamedTuple):
     #: epoch 도는 횟수
     epoch: int = 10
     #: 훈련 시의 batch size
-    train_batch_size: int = 256
+    train_batch_size: int = 100
     #: validate 때 조금 더 빠르게 validate하기 위해서 훈련 시의 batch size보다 큰 값을 지정
     eval_batch_size: int = 512
     #: input 길이의 최대값. 문장 단위의 lm 모델이므로 짧게 잡음
@@ -38,9 +38,9 @@ class TrainConfig(NamedTuple):
     save_model_file_prefix: str = "./checkpoints/model"
 
     #: logging을 할 step 수
-    train_log_interval: int = 500
+    train_log_interval: int = 100
     #: validation을 할 step 수
-    val_log_interval: int = 2000
+    val_log_interval: int = 1000
     # save할 step 수
     save_interval: int = 10000
 
