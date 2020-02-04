@@ -33,9 +33,8 @@ def main():
     # Data for Training
     logger.info(f"prepare datasets for training")
     train_dataset = DSSMTrainDataset(config.train_file_path, config.max_seq_len, vocab, pipeline)
-    # random_sampler = RandomSampler(train_dataset)
-    # train_dataloader = DataLoader(train_dataset, sampler=random_sampler, batch_size=config.train_batch_size)
-    train_dataloader = DataLoader(train_dataset, batch_size=config.train_batch_size)
+    random_sampler = RandomSampler(train_dataset)
+    train_dataloader = DataLoader(train_dataset, sampler=random_sampler, batch_size=config.train_batch_size)
 
     # Data for Evaluation
     logger.info(f"prepare datasets for evaluation")

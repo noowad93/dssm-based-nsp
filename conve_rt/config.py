@@ -3,9 +3,9 @@ from typing import NamedTuple
 
 class TrainConfig(NamedTuple):
     #: epoch 도는 횟수
-    epoch: int = 100
+    epoch: int = 10
     #: 훈련 시의 batch size
-    train_batch_size: int = 100
+    train_batch_size: int = 200
     #: validate 때 조금 더 빠르게 validate하기 위해서 훈련 시의 batch size보다 큰 값을 지정
     eval_batch_size: int = 512
     #: input 길이의 최대값.
@@ -14,8 +14,6 @@ class TrainConfig(NamedTuple):
     learning_rate: float = 0.001
     #: bert fine tuning 레이어의 dropout 확률
     dropout_prob: float = 0.1
-    #: warmup step의 비율 (warmup step = total step * warmup step ratio)
-    warmup_step_ratio: float = 0.1
     # gpu 개수
     n_gpu: int = 4
 
@@ -36,7 +34,7 @@ class TrainConfig(NamedTuple):
     save_model_file_prefix: str = "./checkpoints/model"
 
     #: logging을 할 step 수
-    train_log_interval: int = 1
+    train_log_interval: int = 100
     #: validation을 할 step 수
     val_log_interval: int = 1000
     # save할 step 수
