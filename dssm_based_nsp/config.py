@@ -3,15 +3,15 @@ from typing import NamedTuple
 
 class TrainConfig(NamedTuple):
     #: epoch 도는 횟수
-    epoch: int = 10
+    epoch: int = 100
     #: 훈련 시의 batch size
     train_batch_size: int = 100
     #: validate 때 조금 더 빠르게 validate하기 위해서 훈련 시의 batch size보다 큰 값을 지정
     eval_batch_size: int = 512
-    #: input 길이의 최대값. 문장 단위의 lm 모델이므로 짧게 잡음
-    max_seq_len: int = 160
+    #: input 길이의 최대값.
+    max_seq_len: int = 50
     #: learning rate
-    learning_rate: float = 1e-3
+    learning_rate: float = 0.001
     #: bert fine tuning 레이어의 dropout 확률
     dropout_prob: float = 0.1
     #: warmup step의 비율 (warmup step = total step * warmup step ratio)
@@ -20,25 +20,23 @@ class TrainConfig(NamedTuple):
     n_gpu: int = 4
 
     # word embedding 사이즈
-    word_embed_size = 256
-    # transformer 헤드 개수
-    head_num = 4
-    # transformer hidden unit 차원
+    word_embed_size = 100
+    # hidden unit 차원
     hidden_size = 256
-    # transformer layer 개수
-    layer_num = 2
 
+    # glove
+    glove_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/glove.6B.100d.txt"
     #: train data 파일 경로
     train_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/train.csv"
     #: eval data 파일 경로
     eval_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/valid.csv"
     #: vocab 파일이 저장된 경로
-    vocab_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/vocabulary.txt"
+    vocab_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/vocabulary_30000.txt"
     #: 모델이 저장될 경로
     save_model_file_prefix: str = "./checkpoints/model"
 
     #: logging을 할 step 수
-    train_log_interval: int = 100
+    train_log_interval: int = 1
     #: validation을 할 step 수
     val_log_interval: int = 1000
     # save할 step 수

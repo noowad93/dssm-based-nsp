@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, RandomSampler
 
 from dssm_based_nsp.config import TrainConfig
 from dssm_based_nsp.data import DSSMTrainDataset, DSSMEvalDataset
-from dssm_based_nsp.model import DSSMModel, LSTMEncoderModel
+from dssm_based_nsp.model import DSSMModel, RNNEncoderModel
 from dssm_based_nsp.trainer import Trainer
 
 
@@ -33,10 +33,9 @@ def main():
     # Data for Training
     logger.info(f"prepare datasets for training")
     train_dataset = DSSMTrainDataset(config.train_file_path, config.max_seq_len, vocab, pipeline)
-    random_sampler = RandomSampler(train_dataset)
-    train_dataloader = DataLoader(
-        train_dataset, sampler=random_sampler, batch_size=config.train_batch_size, drop_last=True
-    )
+    # random_sampler = RandomSampler(train_dataset)
+    # train_dataloader = DataLoader(train_dataset, sampler=random_sampler, batch_size=config.train_batch_size)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.train_batch_size)
 
     # Data for Evaluation
     logger.info(f"prepare datasets for evaluation")
@@ -46,8 +45,13 @@ def main():
     # Preparing for Model
     logger.info(f"initialize the model")
 
-    encoder_model = LSTMEncoderModel(len(vocab), config.word_embed_size, config.hidden_size, config.dropout_prob)
-    dssm_model = DSSMModel(encoder_model)
+    context_encoder_model = RNNEncoderModel(
+        vocab, config.word_embed_size, config.hidden_size, config.glove_file_path, config.dropout_prob
+    )
+    reply_encoder_model = RNNEncoderModel(
+        vocab, config.word_embed_size, config.hidden_size, config.glove_file_path, config.dropout_prob
+    )
+    dssm_model = DSSMModel(context_encoder_model, reply_encoder_model)
     # Train
     trainer = Trainer(config, dssm_model, train_dataloader, eval_dataloader, logger)
     trainer.train()

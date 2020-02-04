@@ -1,4 +1,3 @@
-import math
 from logging import Logger
 from typing import List, Tuple
 
@@ -35,6 +34,7 @@ class Trainer:
         #     self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
         self.optimizer = Adam(model.parameters(), lr=config.learning_rate)
         self.criterion = nn.MSELoss()
+        self.criterion.to(self.device)
 
         self.steps_per_epoch = len(train_dataloader)
         self.total_steps = self.steps_per_epoch * config.epoch
@@ -59,16 +59,12 @@ class Trainer:
             for data in self.train_dataloader:
                 global_step += 1
                 data = tuple(datum.to(self.device) for datum in data)
-                labels = torch.tensor(
-                    [1] * self.config.train_batch_size, dtype=torch.float, requires_grad=True
-                ).unsqueeze(1)
-
                 self.optimizer.zero_grad()
                 outputs = self.model.forward(data[0], data[1])
-                loss = self.criterion(outputs, labels)
+                loss = self.criterion(outputs, data[2])
 
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
                 self.optimizer.step()
 
                 loss_sum += loss.item()
