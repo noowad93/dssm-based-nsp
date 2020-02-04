@@ -56,7 +56,7 @@ class DSSMModel(nn.Module):
         batch_size = encoded_contexts.size()[0]
 
         probs = []
-        # Todo: 배치 내의 k-1개를 네가티브로 간주
+        # 배치 내의 k-1개를 네가티브로 간주
         for batch_idx in range(batch_size):
             dot_product_values = torch.stack(
                 [
@@ -70,4 +70,24 @@ class DSSMModel(nn.Module):
             normalized_dot_product_values = self.softmax(dot_product_values)
             probs.append(normalized_dot_product_values)
 
+        return torch.stack(probs)
+
+    def validate_forward(self, contexts: torch.Tensor, candidates: torch.Tensor):
+        encoded_contexts = self.context_encoder(contexts)
+        encoded_candidates = torch.stack([self.reply_encoder(candidates[:, i, :]) for i in range(candidates.size()[1])])
+        batch_size = encoded_contexts.size()[0]
+
+        probs = []
+        for batch_idx in range(batch_size):
+            dot_product_values = torch.stack(
+                [
+                    torch.mm(
+                        encoded_contexts[batch_idx, :].view(1, self.hidden_size),
+                        encoded_candidates[i, batch_idx, :].view(self.hidden_size, 1),
+                    ).squeeze()
+                    for i in range(encoded_candidates.size()[0])
+                ]
+            )
+            normalized_dot_product_values = self.softmax(dot_product_values)
+            probs.append(normalized_dot_product_values)
         return torch.stack(probs)

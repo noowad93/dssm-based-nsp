@@ -56,21 +56,23 @@ class Trainer:
         self.logger.info("========= End of train config ========")
         global_step = 0
         for epoch in range(1, self.config.epoch + 1):
-            self.model.train()
             loss_sum = 0.0
             for data in self.train_dataloader:
+                self.model.train()
                 batch_size = data[0].size()[0]
                 global_step += 1
                 data = tuple(datum.to(self.device) for datum in data)
                 self.optimizer.zero_grad()
+
+                outputs = self.model.forward(data[0], data[1])
+                if self.config.label_smoothing_value != 0.0:
+                    outputs = torch.log(outputs)
+
                 if self.config.label_smoothing_value == 0.0:
                     target_labels = torch.arange(batch_size).to(self.device)
                 else:
                     target_labels = get_smoothing_labels(batch_size, self.config.label_smoothing_value).to(self.device)
 
-                outputs = self.model.forward(data[0], data[1])
-                if self.config.label_smoothing_value != 0.0:
-                    outputs = torch.log(outputs)
                 loss = self.criterion(outputs, target_labels)
 
                 loss.backward()
@@ -82,14 +84,32 @@ class Trainer:
                     mean_loss = loss_sum / self.config.train_log_interval
                     self.logger.info(f"Epoch {epoch} Step {global_step} Loss {mean_loss:.4f}")
                     loss_sum = 0.0
-            #     if global_step % self.config.val_log_interval == 0:
-            #         self._validate(global_step)
-            # self._save_model(self.model, epoch)
+                if global_step % self.config.val_log_interval == 0:
+                    self._validate(global_step)
+                if global_step % self.config.save_interval == 0:
+                    self._save_model(self.model, global_step)
 
-        return
+    def _validate(self, global_step):
+        self.model.eval()
+        correct_top_k = [0] * 5
+        total_instance_num = 0
+        with torch.no_grad():
+            for data in self.eval_dataloader:
+                batch_size = data[0].size()[0]
+                total_instance_num += batch_size
+                data = tuple(datum.to(self.device) for datum in data)
 
-    def _validate(self):
-        return
+                outputs = self.model.validate_forward(data[0], data[1])
+
+                _, arg_top_ks = torch.topk(outputs, k=5)
+                correct_tensor = arg_top_ks.transpose(0, 1).eq(0)
+
+                for k in range(5):
+                    correct_top_k[k] += int(torch.sum(correct_tensor[: k + 1]))
+
+            recall_at_1 = float(correct_top_k[0]) / total_instance_num
+            recall_at_5 = float(correct_top_k[4]) / total_instance_num
+            self.logger.info(f"[Validation] Recall@1 {recall_at_1:.4f} Recall@5 {recall_at_5:.4f}")
 
     def _prepare_device(self, n_gpu_use: int, logger: Logger) -> Tuple[torch.device, List[int]]:
         """
