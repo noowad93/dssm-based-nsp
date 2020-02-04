@@ -6,8 +6,8 @@ import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader
 
-from dssm_based_nsp.config import TrainConfig
-from dssm_based_nsp.model import DSSMModel
+from conve_rt.config import TrainConfig
+from conve_rt.model import DSSMModel
 
 
 class Trainer:

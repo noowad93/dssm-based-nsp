@@ -1,6 +1,6 @@
 {
   "include": [
-    "dssm_based_nsp"
+    "conve_rt"
   ],
   "venvPath": "venv",
   "reportUnusedImport": true,

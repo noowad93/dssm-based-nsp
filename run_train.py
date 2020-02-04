@@ -7,10 +7,10 @@ from pnlp.text.tokenizer import SpaceTokenizer
 from pnlp.utils import TQDMHandler
 from torch.utils.data import DataLoader, RandomSampler
 
-from dssm_based_nsp.config import TrainConfig
-from dssm_based_nsp.data import DSSMTrainDataset, DSSMEvalDataset
-from dssm_based_nsp.model import DSSMModel, RNNEncoderModel
-from dssm_based_nsp.trainer import Trainer
+from conve_rt.config import TrainConfig
+from conve_rt.data import DSSMTrainDataset, DSSMEvalDataset
+from conve_rt.model import DSSMModel, RNNEncoderModel
+from conve_rt.trainer import Trainer
 
 
 def main():

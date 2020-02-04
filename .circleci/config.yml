@@ -2,7 +2,7 @@ version: 2.1
 
 executors:
   python-executor:
-    working_directory: ~/dssm-based-nsp
+    working_directory: ~/convert
     docker:
       - image: circleci/python:3.7
 
@@ -31,7 +31,7 @@ jobs:
           name: Run Tests
           command: |
             . venv/bin/activate
-            pytest --cov-branch --cov dssm_based_nsp
+            pytest --cov-branch --cov conve_rt
 
       - run:
           name: Upload coverage report
@@ -63,9 +63,9 @@ jobs:
           name: Run black, flake8, isort
           command: |
             . venv/bin/activate
-            black --check dssm_based_nsp tests
-            flake8 dssm_based_nsp tests
-            isort -rc -c dssm_based_nsp tests
+            black --check conve_rt tests
+            flake8 conve_rt tests
+            isort -rc -c conve_rt tests
 
   check-git-convention:
     executor: python-executor

@@ -25,13 +25,13 @@ class TrainConfig(NamedTuple):
     hidden_size = 256
 
     # glove
-    glove_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/glove.6B.100d.txt"
+    glove_file_path: str = "/nas/home/noowad/convert/data/glove.6B.100d.txt"
     #: train data 파일 경로
-    train_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/train.csv"
+    train_file_path: str = "/nas/home/noowad/convert/data/train.csv"
     #: eval data 파일 경로
-    eval_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/valid.csv"
+    eval_file_path: str = "/nas/home/noowad/convert/data/valid.csv"
     #: vocab 파일이 저장된 경로
-    vocab_file_path: str = "/nas/home/noowad/dssm-based-nsp/data/vocabulary_30000.txt"
+    vocab_file_path: str = "/nas/home/noowad/convert/data/vocabulary_30000.txt"
     #: 모델이 저장될 경로
     save_model_file_prefix: str = "./checkpoints/model"
 
@@ -65,4 +65,4 @@ class InferenceConfig(NamedTuple):
     #: vocab 파일이 저장된 경로
     vocab_file_path: str = "/nas/models/pretrained_bert/vocab/mecab-50000.vocab"
     #: pretraining model 경로
-    checkpoint_file_path: str = "/nas/home/noowad/dssm-based-nsp/checkpoints/lm_model_processed_step_step_340000.pth"
+    checkpoint_file_path: str = "/nas/home/noowad/convert/checkpoints/lm_model_processed_step_step_340000.pth"
