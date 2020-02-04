@@ -33,7 +33,7 @@ class Trainer:
         # if len(self.list_ids) > 1:
         #     self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
         self.optimizer = Adam(model.parameters(), lr=config.learning_rate)
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.CrossEntropyLoss()
         self.criterion.to(self.device)
 
         self.steps_per_epoch = len(train_dataloader)
@@ -61,7 +61,8 @@ class Trainer:
                 data = tuple(datum.to(self.device) for datum in data)
                 self.optimizer.zero_grad()
                 outputs = self.model.forward(data[0], data[1])
-                loss = self.criterion(outputs, data[2])
+                target_labels = torch.arange(data[0].size()[0]).to(self.device)
+                loss = self.criterion(outputs, target_labels)
 
                 loss.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)

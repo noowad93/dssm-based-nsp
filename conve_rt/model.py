@@ -68,6 +68,6 @@ class DSSMModel(nn.Module):
                 ],
             )
             normalized_dot_product_values = self.softmax(dot_product_values)
-            probs.append(normalized_dot_product_values[batch_idx])
+            probs.append(normalized_dot_product_values)
 
-        return torch.stack(probs).unsqueeze(1)
+        return torch.stack(probs)
