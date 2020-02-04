@@ -5,7 +5,7 @@ class TrainConfig(NamedTuple):
     #: epoch 도는 횟수
     epoch: int = 10
     #: 훈련 시의 batch size
-    train_batch_size: int = 200
+    train_batch_size: int = 10
     #: validate 때 조금 더 빠르게 validate하기 위해서 훈련 시의 batch size보다 큰 값을 지정
     eval_batch_size: int = 512
     #: input 길이의 최대값.
@@ -17,6 +17,7 @@ class TrainConfig(NamedTuple):
     # gpu 개수
     n_gpu: int = 4
 
+    label_smoothing_value = 0.1
     # word embedding 사이즈
     word_embed_size = 100
     # hidden unit 차원

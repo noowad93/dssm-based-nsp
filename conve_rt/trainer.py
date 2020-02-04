@@ -33,7 +33,9 @@ class Trainer:
         # if len(self.list_ids) > 1:
         #     self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
         self.optimizer = Adam(model.parameters(), lr=config.learning_rate)
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = (
+            nn.CrossEntropyLoss() if self.config.label_smoothing_value == 0.0 else nn.KLDivLoss(reduction="batchmean")
+        )
         self.criterion.to(self.device)
 
         self.steps_per_epoch = len(train_dataloader)
@@ -57,11 +59,18 @@ class Trainer:
             self.model.train()
             loss_sum = 0.0
             for data in self.train_dataloader:
+                batch_size = data[0].size()[0]
                 global_step += 1
                 data = tuple(datum.to(self.device) for datum in data)
                 self.optimizer.zero_grad()
+                if self.config.label_smoothing_value == 0.0:
+                    target_labels = torch.arange(batch_size).to(self.device)
+                else:
+                    target_labels = get_smoothing_labels(batch_size, self.config.label_smoothing_value).to(self.device)
+
                 outputs = self.model.forward(data[0], data[1])
-                target_labels = torch.arange(data[0].size()[0]).to(self.device)
+                if self.config.label_smoothing_value != 0.0:
+                    outputs = torch.log(outputs)
                 loss = self.criterion(outputs, target_labels)
 
                 loss.backward()
@@ -106,3 +115,11 @@ class Trainer:
             torch.save(model.module.state_dict(), f"{self.config.save_model_file_prefix}_step_{step}.pth")
         else:
             torch.save(model.state_dict(), f"{self.config.save_model_file_prefix}_step_{step}.pth")
+
+
+def get_smoothing_labels(batch_size: int, label_smoothing_value: float) -> torch.Tensor:
+    labels = torch.zeros(batch_size, batch_size)
+    for i in range(batch_size):
+        labels[i].fill_(label_smoothing_value / (batch_size - 1))
+        labels[i][i] = 1.0 - label_smoothing_value
+    return labels
