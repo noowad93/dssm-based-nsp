@@ -1,9 +1,10 @@
 import csv
-from torch.utils.data import Dataset
+from typing import List, Tuple
+
+import torch
 from pnlp.pipeline import NLPPipeline
 from pnlp.text import Vocab
-from typing import List, Tuple
-import torch
+from torch.utils.data import Dataset
 
 
 def load_dataset(file_path: str) -> List[List[str]]:
@@ -24,16 +25,17 @@ class DSSMTrainDataset(Dataset):
     def __len__(self) -> int:
         return len(self.training_instances)
 
-    def __getitem__(self, key: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, key: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         return self.training_instances[key]
 
-    def _create_training_instances(self, file_path: str) -> List[Tuple[torch.Tensor, torch.Tensor]]:
+    def _create_training_instances(self, file_path: str) -> List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
         """데이터셋의 경로를 받아 각 데이터를 Model의 입력 형태로 변환하여 리스트 형태로 반환해주는 함수입니다."""
         instances = []
         for line in load_dataset(file_path):
             if line[2] == "0":
                 continue
-            context = line[0]
+            # for singleturn
+            context = line[0].split("__eou__")[-2]
             tokenized_context = self.pipeline.run(context)
             reply = line[1]
             tokenized_reply = self.pipeline.run(reply)
@@ -51,7 +53,11 @@ class DSSMTrainDataset(Dataset):
                 self.max_len - len(featurized_reply)
             )
             instances.append(
-                (torch.tensor(padded_context, dtype=torch.long), torch.tensor(padded_reply, dtype=torch.long))
+                (
+                    torch.tensor(padded_context, dtype=torch.long),
+                    torch.tensor(padded_reply, dtype=torch.long),
+                    torch.tensor([1], dtype=torch.float),
+                )
             )
         return instances
 
@@ -111,5 +117,5 @@ class DSSMEvalDataset(Dataset):
         return (
             torch.tensor(padded_context, dtype=torch.long),
             torch.tensor(padded_reply, dtype=torch.long),
-            torch.tensor(padded_distractors, dtype=torch.long),
+            torch.tensor(padded_distractors, dtype=torch.float),
         )
