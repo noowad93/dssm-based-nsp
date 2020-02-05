@@ -107,9 +107,9 @@ class Trainer:
                 for k in range(5):
                     correct_top_k[k] += int(torch.sum(correct_tensor[: k + 1]))
 
-            recall_at_1 = float(correct_top_k[0]) / total_instance_num
-            recall_at_5 = float(correct_top_k[4]) / total_instance_num
-            self.logger.info(f"[Validation] Recall@1 {recall_at_1:.4f} Recall@5 {recall_at_5:.4f}")
+            acc_at_1 = float(correct_top_k[0]) / total_instance_num
+            acc_at_5 = float(correct_top_k[4]) / total_instance_num
+            self.logger.info(f"[Validation] Acc@1 {acc_at_1:.4f} Acc@5 {acc_at_5:.4f}")
 
     def _prepare_device(self, n_gpu_use: int, logger: Logger) -> Tuple[torch.device, List[int]]:
         """
