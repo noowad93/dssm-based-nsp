@@ -34,7 +34,7 @@ class Trainer:
         #     self.model = nn.DataParallel(self.model, device_ids=self.list_ids)
         self.optimizer = Adam(model.parameters(), lr=config.learning_rate)
         self.criterion = (
-            nn.CrossEntropyLoss() if self.config.label_smoothing_value == 0.0 else nn.KLDivLoss(reduction="batchmean")
+            nn.NLLLoss() if self.config.label_smoothing_value == 0.0 else nn.KLDivLoss(reduction="batchmean")
         )
         self.criterion.to(self.device)
 
@@ -48,6 +48,7 @@ class Trainer:
         self.logger.info(f"dataset length/ test  : {len(self.eval_dataloader.dataset)}")
         self.logger.info(f"max sequence length   : {self.config.max_seq_len}")
         self.logger.info(f"train batch size      : {self.config.train_batch_size}")
+        self.logger.info(f"label smoothing value : {self.config.label_smoothing_value}")
         self.logger.info(f"learning rate         : {self.config.learning_rate}")
         self.logger.info(f"dropout prob          : {self.config.dropout_prob}")
         self.logger.info(f"total epoch           : {self.config.epoch}")
@@ -73,9 +74,6 @@ class Trainer:
                 if self.config.label_smoothing_value == 0.0:
                     target_labels = torch.arange(batch_size).to(self.device)
                 else:
-                    outputs_q = torch.log(outputs_q)
-                    outputs_c = torch.log(outputs_c)
-                    outputs_qc = torch.log(outputs_qc)
                     target_labels = get_smoothing_labels(batch_size, self.config.label_smoothing_value).to(self.device)
 
                 loss_q = self.criterion(outputs_q, target_labels)

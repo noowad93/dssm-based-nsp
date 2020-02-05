@@ -78,7 +78,7 @@ class ConveRTModel(nn.Module):
                     for i in range(batch_size)
                 ],
             )
-            normalized_dot_product_values = self.softmax(dot_product_values)
+            normalized_dot_product_values = torch.log(self.softmax(dot_product_values))
             interaction_between_q_r_probs.append(normalized_dot_product_values)
 
         # interaction between context and reply
@@ -92,7 +92,7 @@ class ConveRTModel(nn.Module):
                     for i in range(batch_size)
                 ],
             )
-            normalized_dot_product_values = self.softmax(dot_product_values)
+            normalized_dot_product_values = torch.log(self.softmax(dot_product_values))
             interaction_between_c_r_probs.append(normalized_dot_product_values)
 
         # interaction between q_c and reply
@@ -106,7 +106,7 @@ class ConveRTModel(nn.Module):
                     for i in range(batch_size)
                 ],
             )
-            normalized_dot_product_values = self.softmax(dot_product_values)
+            normalized_dot_product_values = torch.log(self.softmax(dot_product_values))
             interaction_between_qc_r_probs.append(normalized_dot_product_values)
 
         return (
@@ -118,6 +118,7 @@ class ConveRTModel(nn.Module):
     def validate_forward(self, query: torch.Tensor, context: torch.Tensor, candidates: torch.Tensor):
         encoded_query = self.query_encoder(query)
         encoded_context = self.context_encoder(context)
+        # (candidates_num,batch_size,hidden_size)
         encoded_candidates = torch.stack([self.reply_encoder(candidates[:, i, :]) for i in range(candidates.size()[1])])
         batch_size = encoded_context.size()[0]
 
