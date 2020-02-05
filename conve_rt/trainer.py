@@ -7,14 +7,14 @@ from torch.optim.adam import Adam
 from torch.utils.data import DataLoader
 
 from conve_rt.config import TrainConfig
-from conve_rt.model import DSSMModel
+from conve_rt.model import ConveRTModel
 
 
 class Trainer:
     def __init__(
         self,
         config: TrainConfig,
-        model: DSSMModel,
+        model: ConveRTModel,
         train_dataloader: DataLoader,
         eval_dataloader: DataLoader,
         logger: Logger,
@@ -61,24 +61,33 @@ class Trainer:
                 self.model.train()
                 batch_size = data[0].size()[0]
                 global_step += 1
-                data = tuple(datum.to(self.device) for datum in data)
+
                 self.optimizer.zero_grad()
 
-                outputs = self.model.forward(data[0], data[1])
+                query = data[0].to(self.device)
+                context = data[1].to(self.device)
+                reply = data[2].to(self.device)
+
+                outputs_q, outputs_c, outputs_qc = self.model.forward(query, context, reply)
 
                 if self.config.label_smoothing_value == 0.0:
                     target_labels = torch.arange(batch_size).to(self.device)
                 else:
-                    outputs = torch.log(outputs)
+                    outputs_q = torch.log(outputs_q)
+                    outputs_c = torch.log(outputs_c)
+                    outputs_qc = torch.log(outputs_qc)
                     target_labels = get_smoothing_labels(batch_size, self.config.label_smoothing_value).to(self.device)
 
-                loss = self.criterion(outputs, target_labels)
+                loss_q = self.criterion(outputs_q, target_labels)
+                loss_c = self.criterion(outputs_c, target_labels)
+                loss_qc = self.criterion(outputs_qc, target_labels)
+                total_loss = loss_q + loss_c + loss_qc
 
-                loss.backward()
+                total_loss.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
                 self.optimizer.step()
 
-                loss_sum += loss.item()
+                loss_sum += total_loss.item()
                 if global_step % self.config.train_log_interval == 0:
                     mean_loss = loss_sum / self.config.train_log_interval
                     self.logger.info(f"Epoch {epoch} Step {global_step} Loss {mean_loss:.4f}")
@@ -96,9 +105,12 @@ class Trainer:
             for data in self.eval_dataloader:
                 batch_size = data[0].size()[0]
                 total_instance_num += batch_size
-                data = tuple(datum.to(self.device) for datum in data)
 
-                outputs = self.model.validate_forward(data[0], data[1])
+                query = data[0].to(self.device)
+                context = data[1].to(self.device)
+                candidates = data[2].to(self.device)
+
+                outputs = self.model.validate_forward(query, context, candidates)
 
                 _, arg_top_ks = torch.topk(outputs, k=5)
                 correct_tensor = arg_top_ks.transpose(0, 1).eq(0)
@@ -108,7 +120,7 @@ class Trainer:
 
             acc_at_1 = float(correct_top_k[0]) / total_instance_num
             acc_at_5 = float(correct_top_k[4]) / total_instance_num
-            self.logger.info(f"[Validation] Acc@1 {acc_at_1:.4f} Acc@5 {acc_at_5:.4f}")
+            self.logger.info(f"[Validation] Hits@1  {acc_at_1:.4f} Hits@5 {acc_at_5:.4f}")
 
     def _prepare_device(self, n_gpu_use: int, logger: Logger) -> Tuple[torch.device, List[int]]:
         """

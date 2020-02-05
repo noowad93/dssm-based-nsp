@@ -8,8 +8,8 @@ from pnlp.utils import TQDMHandler
 from torch.utils.data import DataLoader, RandomSampler
 
 from conve_rt.config import TrainConfig
-from conve_rt.data import DSSMTrainDataset, DSSMEvalDataset
-from conve_rt.model import DSSMModel, RNNEncoderModel
+from conve_rt.data import ConveRTTrainDataset, ConveRTEvalDataset
+from conve_rt.model import ConveRTModel, RNNEncoderModel
 from conve_rt.trainer import Trainer
 
 
@@ -32,27 +32,30 @@ def main():
 
     # Data for Training
     logger.info(f"prepare datasets for training")
-    train_dataset = DSSMTrainDataset(config.train_file_path, config.max_seq_len, vocab, pipeline)
+    train_dataset = ConveRTTrainDataset(config.train_file_path, config.max_seq_len, vocab, pipeline)
     random_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=random_sampler, batch_size=config.train_batch_size)
 
     # Data for Evaluation
     logger.info(f"prepare datasets for evaluation")
-    eval_dataset = DSSMEvalDataset(config.eval_file_path, config.max_seq_len, vocab, pipeline)
+    eval_dataset = ConveRTEvalDataset(config.eval_file_path, config.max_seq_len, vocab, pipeline)
     eval_dataloader = DataLoader(eval_dataset, batch_size=config.eval_batch_size)
 
     # Preparing for Model
     logger.info(f"initialize the model")
 
+    query_encoder_model = RNNEncoderModel(
+        vocab, config.word_embed_size, config.hidden_size, config.glove_file_path, config.dropout_prob
+    )
     context_encoder_model = RNNEncoderModel(
         vocab, config.word_embed_size, config.hidden_size, config.glove_file_path, config.dropout_prob
     )
     reply_encoder_model = RNNEncoderModel(
         vocab, config.word_embed_size, config.hidden_size, config.glove_file_path, config.dropout_prob
     )
-    dssm_model = DSSMModel(context_encoder_model, reply_encoder_model)
+    ConveRT_model = ConveRTModel(query_encoder_model, context_encoder_model, reply_encoder_model)
     # Train
-    trainer = Trainer(config, dssm_model, train_dataloader, eval_dataloader, logger)
+    trainer = Trainer(config, ConveRT_model, train_dataloader, eval_dataloader, logger)
     trainer.train()
 
 

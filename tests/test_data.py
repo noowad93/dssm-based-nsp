@@ -65,12 +65,12 @@ def test_load_dataset(file_path_for_test):
 
 # def test_len_of_dataset(file_path_for_test, token_vocab_for_test):
 
-#     lm_dataset = DSSMTrainDataset(file_path_for_test, 24, token_vocab_for_test, NLPPipeline([MecabTokenizer()]))
+#     lm_dataset = ConveRTTrainDataset(file_path_for_test, 24, token_vocab_for_test, NLPPipeline([MecabTokenizer()]))
 #     assert len(lm_dataset) == 2
 
 
 # def test_dataset_output_value(file_path_for_test, token_vocab_for_test):
-#     lm_dataset = DSSMTrainDataset(file_path_for_test, 24, token_vocab_for_test, NLPPipeline([MecabTokenizer()]))
+#     lm_dataset = ConveRTTrainDataset(file_path_for_test, 24, token_vocab_for_test, NLPPipeline([MecabTokenizer()]))
 
 #     example_instance = lm_dataset.training_instances[0]
 #     assert torch.all(

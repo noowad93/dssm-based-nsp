@@ -5,11 +5,11 @@ class TrainConfig(NamedTuple):
     #: epoch 도는 횟수
     epoch: int = 10
     #: 훈련 시의 batch size
-    train_batch_size: int = 20
+    train_batch_size: int = 128
     #: validate 때 조금 더 빠르게 validate하기 위해서 훈련 시의 batch size보다 큰 값을 지정
     eval_batch_size: int = 128
     #: input 길이의 최대값
-    max_seq_len: int = 50
+    max_seq_len: int = 160
     #: learning rate
     learning_rate: float = 0.001
     #: bert fine tuning 레이어의 dropout 확률
@@ -36,9 +36,9 @@ class TrainConfig(NamedTuple):
     save_model_file_prefix: str = "./checkpoints/model"
 
     #: logging을 할 step 수
-    train_log_interval: int = 100
+    train_log_interval: int = 1
     #: validation을 할 step 수
-    val_log_interval: int = 500
+    val_log_interval: int = 10
     # save할 step 수
     save_interval: int = 1000
 

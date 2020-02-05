@@ -41,48 +41,94 @@ class RNNEncoderModel(nn.Module):
         return weights_matrix
 
 
-class DSSMModel(nn.Module):
-    def __init__(self, context_encoder: RNNEncoderModel, reply_encoder: RNNEncoderModel):
-        super(DSSMModel, self).__init__()
+class ConveRTModel(nn.Module):
+    def __init__(
+        self, query_encoder: RNNEncoderModel, context_encoder: RNNEncoderModel, reply_encoder: RNNEncoderModel,
+    ):
+        super(ConveRTModel, self).__init__()
+        self.query_encoder = query_encoder
         self.context_encoder = context_encoder
         self.reply_encoder = reply_encoder
+
+        assert self.query_encoder.hidden_size == self.context_encoder.hidden_size == self.reply_encoder.hidden_size
         self.softmax = torch.nn.Softmax(dim=-1)
-        assert self.context_encoder.hidden_size == self.reply_encoder.hidden_size
-        self.hidden_size = self.context_encoder.hidden_size
+        self.hidden_size = self.query_encoder.hidden_size
+        self.linear = nn.Linear(self.hidden_size, self.hidden_size)
 
-    def forward(self, contexts, reply):
-        encoded_contexts = self.context_encoder(contexts)
+    def forward(self, query, context, reply):
+        encoded_query = self.query_encoder(query)
+        encoded_context = self.context_encoder(context)
         encoded_reply = self.reply_encoder(reply)
-        batch_size = encoded_contexts.size()[0]
+        batch_size = encoded_context.size()[0]
 
-        probs = []
+        encoded_qc = self.linear(encoded_query.add(encoded_context) / 2)
+
+        interaction_between_q_r_probs = []
+        interaction_between_c_r_probs = []
+        interaction_between_qc_r_probs = []
         # 배치 내의 k-1개를 네가티브로 간주
+        # interaction between query and reply
         for batch_idx in range(batch_size):
             dot_product_values = torch.stack(
                 [
                     torch.mm(
-                        encoded_contexts[batch_idx, :].view(1, self.hidden_size),
+                        encoded_query[batch_idx, :].view(1, self.hidden_size),
                         encoded_reply[i, :].view(self.hidden_size, 1),
                     ).squeeze()
                     for i in range(batch_size)
                 ],
             )
             normalized_dot_product_values = self.softmax(dot_product_values)
-            probs.append(normalized_dot_product_values)
+            interaction_between_q_r_probs.append(normalized_dot_product_values)
 
-        return torch.stack(probs)
+        # interaction between context and reply
+        for batch_idx in range(batch_size):
+            dot_product_values = torch.stack(
+                [
+                    torch.mm(
+                        encoded_context[batch_idx, :].view(1, self.hidden_size),
+                        encoded_reply[i, :].view(self.hidden_size, 1),
+                    ).squeeze()
+                    for i in range(batch_size)
+                ],
+            )
+            normalized_dot_product_values = self.softmax(dot_product_values)
+            interaction_between_c_r_probs.append(normalized_dot_product_values)
 
-    def validate_forward(self, contexts: torch.Tensor, candidates: torch.Tensor):
-        encoded_contexts = self.context_encoder(contexts)
+        # interaction between q_c and reply
+        for batch_idx in range(batch_size):
+            dot_product_values = torch.stack(
+                [
+                    torch.mm(
+                        encoded_qc[batch_idx, :].view(1, self.hidden_size),
+                        encoded_reply[i, :].view(self.hidden_size, 1),
+                    ).squeeze()
+                    for i in range(batch_size)
+                ],
+            )
+            normalized_dot_product_values = self.softmax(dot_product_values)
+            interaction_between_qc_r_probs.append(normalized_dot_product_values)
+
+        return (
+            torch.stack(interaction_between_q_r_probs),
+            torch.stack(interaction_between_c_r_probs),
+            torch.stack(interaction_between_qc_r_probs),
+        )
+
+    def validate_forward(self, query: torch.Tensor, context: torch.Tensor, candidates: torch.Tensor):
+        encoded_query = self.query_encoder(query)
+        encoded_context = self.context_encoder(context)
         encoded_candidates = torch.stack([self.reply_encoder(candidates[:, i, :]) for i in range(candidates.size()[1])])
-        batch_size = encoded_contexts.size()[0]
+        batch_size = encoded_context.size()[0]
+
+        encoded_qc = self.linear(encoded_query.add(encoded_context) / 2)
 
         probs = []
         for batch_idx in range(batch_size):
             dot_product_values = torch.stack(
                 [
                     torch.mm(
-                        encoded_contexts[batch_idx, :].view(1, self.hidden_size),
+                        encoded_qc[batch_idx, :].view(1, self.hidden_size),
                         encoded_candidates[i, batch_idx, :].view(self.hidden_size, 1),
                     ).squeeze()
                     for i in range(encoded_candidates.size()[0])
