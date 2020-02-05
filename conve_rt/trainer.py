@@ -65,12 +65,10 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 outputs = self.model.forward(data[0], data[1])
-                if self.config.label_smoothing_value != 0.0:
-                    outputs = torch.log(outputs)
-
                 if self.config.label_smoothing_value == 0.0:
                     target_labels = torch.arange(batch_size).to(self.device)
                 else:
+                    outputs = torch.log(outputs)
                     target_labels = get_smoothing_labels(batch_size, self.config.label_smoothing_value).to(self.device)
 
                 loss = self.criterion(outputs, target_labels)

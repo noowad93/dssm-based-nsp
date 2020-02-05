@@ -50,9 +50,9 @@ class DSSMModel(nn.Module):
         assert self.context_encoder.hidden_size == self.reply_encoder.hidden_size
         self.hidden_size = self.context_encoder.hidden_size
 
-    def forward(self, contexts, replies):
+    def forward(self, contexts, reply):
         encoded_contexts = self.context_encoder(contexts)
-        encoded_replies = self.reply_encoder(replies)
+        encoded_reply = self.reply_encoder(reply)
         batch_size = encoded_contexts.size()[0]
 
         probs = []
@@ -62,7 +62,7 @@ class DSSMModel(nn.Module):
                 [
                     torch.mm(
                         encoded_contexts[batch_idx, :].view(1, self.hidden_size),
-                        encoded_replies[i, :].view(self.hidden_size, 1),
+                        encoded_reply[i, :].view(self.hidden_size, 1),
                     ).squeeze()
                     for i in range(batch_size)
                 ],
