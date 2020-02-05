@@ -5,4 +5,4 @@ Work in Progress
 ## Performance
 
 싱글턴 기준
-[Validation] Recall@1 0.4600 Recall@5 0.8587
+[Validation] Precision@1 0.4600 Precision@5 0.8587

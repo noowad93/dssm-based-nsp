@@ -65,6 +65,7 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 outputs = self.model.forward(data[0], data[1])
+
                 if self.config.label_smoothing_value == 0.0:
                     target_labels = torch.arange(batch_size).to(self.device)
                 else:
