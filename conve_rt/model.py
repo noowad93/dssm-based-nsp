@@ -38,6 +38,8 @@ class RNNEncoderModel(nn.Module):
         weights_matrix = np.random.uniform(-0.25, 0.25, size=(self.token_num, self.word_embed_size))
         for word in embeddings:
             weights_matrix[vocab.convert_token_to_id(word)] = embeddings[word]
+        # for <PAD>
+        weights_matrix[0] = [0.0] * self.word_embed_size
         return weights_matrix
 
 
