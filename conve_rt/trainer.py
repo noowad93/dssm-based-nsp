@@ -110,7 +110,9 @@ class Trainer:
 
                 outputs = self.model.validate_forward(query, context, candidates)
 
+                # (cls_num, k)
                 _, arg_top_ks = torch.topk(outputs, k=5)
+                # (k,cls_num)
                 correct_tensor = arg_top_ks.transpose(0, 1).eq(0)
 
                 for k in range(5):
