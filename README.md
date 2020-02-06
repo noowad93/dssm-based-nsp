@@ -4,5 +4,10 @@ Work in Progress
 
 ## Performance
 
-싱글턴 기준
-[Validation] Precision@1 0.4600 Precision@5 0.8587
+### LSTM Encoder
+
+**Single-Turn**
+[Validation] Recall@1 in 10 0.4600 Recall@5 in 10 0.8587
+
+**Multi-Turn**
+[Validation] Recall@1 in 10 0.6337 Recall@5 in 10 0.9464
