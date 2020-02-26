@@ -1,4 +1,4 @@
-# ConveRT with Ubuntu Dialogue Corpus
+# next utterance retrieval with Ubuntu Dialogue Corpus
 
 Work in Progress
 
